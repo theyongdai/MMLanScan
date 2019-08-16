@@ -11,7 +11,7 @@
 #import "LANProperties.h"
 #import "MacFinder.h"
 
-static const float PING_TIMEOUT = 1;
+static const float PING_TIMEOUT = 2;
 
 @interface PingOperation ()
 @property (nonatomic,strong) NSString *ipStr;
@@ -31,7 +31,7 @@ static const float PING_TIMEOUT = 1;
     NSTimer *pingTimer;
 }
 
--(instancetype)initWithIPToPing:(NSString*)ip andCompletionHandler:(nullable void (^)(NSError  * _Nullable error, NSString  * _Nonnull ip))result;{
+-(instancetype)initWithIPToPing:(NSString*)ip andCompletionHandler:(nullable void (^)(NSError  * _Nullable error, NSString  * _Nonnull ip))result {
 
     self = [super init];
     
@@ -46,7 +46,7 @@ static const float PING_TIMEOUT = 1;
     }
     
     return self;
-};
+} 
 
 -(void)start {
 
@@ -100,22 +100,32 @@ static const float PING_TIMEOUT = 1;
 }
 
 -(void)finish {
-
-    //Removes timer from the NSRunLoop
-    [_keepAliveTimer invalidate];
-    _keepAliveTimer = nil;
     
-    //Kill the while loop in the start method
-    _stopRunLoop = YES;
+    [self.simplePing stop];
+    self.simplePing.delegate = nil;
+    self.simplePing = nil;
     
-    [self willChangeValueForKey:@"isExecuting"];
-    [self willChangeValueForKey:@"isFinished"];
+    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     
-    _isExecuting = NO;
-    _isFinished = YES;
-    
-    [self didChangeValueForKey:@"isExecuting"];
-    [self didChangeValueForKey:@"isFinished"];
+    [runLoop performBlock:^{
+        
+        //Removes timer from the NSRunLoop
+        [_keepAliveTimer invalidate];
+        _keepAliveTimer = nil;
+        
+        //Kill the while loop in the start method
+        _stopRunLoop = YES;
+        
+        [self willChangeValueForKey:@"isExecuting"];
+        [self willChangeValueForKey:@"isFinished"];
+        
+        _isExecuting = NO;
+        _isFinished = YES;
+        
+        [self didChangeValueForKey:@"isExecuting"];
+        [self didChangeValueForKey:@"isFinished"];
+        
+    }];
     
 }
 
